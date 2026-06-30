@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('timotheh-dockerhub-password')
-        SONAR_TOKEN = credentials('timotheh-sonar-token')
         IMAGE_NAME = 'timotheh/tasklist-backend'
         IMAGE_TAG = "${IMAGE_NAME}:${BUILD_NUMBER}"
     }
@@ -40,10 +39,11 @@ pipeline {
 
         stage('Analyse SonarQube') {
             steps {
-                sh """
-                    npx sonar-scanner \
-                        -Dsonar.token=${SONAR_TOKEN}
-                """
+                withSonarQubeEnv('SonarQube') {
+                    withCredentials([string(credentialsId: 'timotheh-sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh 'npx sonar-scanner -Dsonar.token=$SONAR_TOKEN'
+                    }
+                }
             }
         }
 
@@ -82,14 +82,8 @@ pipeline {
         stage('Génération SBOM') {
             steps {
                 sh """
-                    trivy image \
-                        --format cyclonedx \
-                        -o sbom-cyclonedx.json \
-                        ${IMAGE_TAG}
-                    trivy image \
-                        --format spdx-json \
-                        -o sbom-spdx.json \
-                        ${IMAGE_TAG}
+                    trivy image --format cyclonedx -o sbom-cyclonedx.json ${IMAGE_TAG}
+                    trivy image --format spdx-json -o sbom-spdx.json ${IMAGE_TAG}
                 """
             }
             post {
