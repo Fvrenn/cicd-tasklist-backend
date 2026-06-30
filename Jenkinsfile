@@ -22,7 +22,7 @@ pipeline {
 
         stage('Tests unitaires') {
             steps {
-                sh 'npm run test'
+                sh 'npm run test:coverage'
             }
             post {
                 always {
