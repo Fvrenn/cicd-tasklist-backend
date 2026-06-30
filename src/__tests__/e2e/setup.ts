@@ -15,9 +15,9 @@ execSync(`npx prisma generate --schema="${testSchemaPath}"`, {
   stdio: "pipe",
 });
 
-// Push schema to test DB (creates/resets the SQLite file)
+// Push schema to test DB (creates tables if not existing)
 execSync(
-  `npx prisma db push --schema="${testSchemaPath}" --force-reset --accept-data-loss`,
+  `npx prisma db push --schema="${testSchemaPath}" --skip-generate`,
   {
     cwd: projectRoot,
     stdio: "pipe",
